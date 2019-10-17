@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace RockPaperScissorsLizardSpock
+namespace RockPaperScissorsLizardSpockSpeaking
 {
     //An enum that represent the winner of a round of Tic Tac Toe
     public enum Winner

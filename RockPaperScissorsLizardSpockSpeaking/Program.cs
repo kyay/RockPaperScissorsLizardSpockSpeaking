@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RockPaperScissorsLizardSpock
+namespace RockPaperScissorsLizardSpockSpeaking
 {
     class Program
     {
@@ -17,24 +17,25 @@ namespace RockPaperScissorsLizardSpock
 
         static void Main(string[] args)
         {
+			SpeakingConsole.ChosenSpeed = SpeakingConsole.Speed.Fast;
             //Play starting sound
             System.Media.SystemSounds.Asterisk.Play();
-            Console.WriteLine("Welcome to Rock Paper Scissors Lizard Spock.");
-            Console.WriteLine("\nPlease choose a game mode from the following or enter its respective number (0 or 1):\n" + GameMode.Regular.GetDescription() + "\n" + GameMode.LettsEdition.GetDescription());
+            SpeakingConsole.WriteLine("Welcome to Rock Paper Scissors Lizard Spock.");
+            SpeakingConsole.WriteLine("\nPlease choose a game mode from the following or enter its respective number (0 or 1):\n" + GameMode.Regular.GetDescription() + "\n" + GameMode.LettsEdition.GetDescription());
             string strGameMode;
             int intGameMode = -1;
-            while ((strGameMode = Console.ReadLine()).Simplify() != GameMode.Regular.GetDescription().Simplify() &&
+            while ((strGameMode = SpeakingConsole.ReadLine()).Simplify() != GameMode.Regular.GetDescription().Simplify() &&
                 strGameMode.Simplify() != GameMode.LettsEdition.GetDescription().Simplify() &&
                 (intGameMode = IntegerUtils.ForceParse(strGameMode)) != 0 && intGameMode != 1)
             {
-                Console.WriteLine("Please enter a correct game mode from above");
+                SpeakingConsole.WriteLine("Please enter a correct game mode from above");
             }
             playerUser.GameMode = (intGameMode == 0 || strGameMode.Simplify() == GameMode.Regular.GetDescription().Simplify()) ? GameMode.Regular : GameMode.LettsEdition;
             playerComputer.GameMode = playerUser.GameMode;
             string strInput = string.Empty;
             while (strInput.Simplify() != EXIT_FLAG.Simplify())
             {
-                Console.WriteLine("\nRound " + (playerUser.RoundsPlayed + 1) +
+                SpeakingConsole.WriteLine("\nRound " + (playerUser.RoundsPlayed + 1) +
                     "\nPlease enter one of the following choices or their respective numbers (starting from 1) " +
                     "or enter \"" + EXIT_FLAG + "\" to exit out of the program: ");
 
@@ -47,10 +48,10 @@ namespace RockPaperScissorsLizardSpock
                     {
                         continue;
                     }
-                    Console.WriteLine(curChoice.ToString(playerUser.GameMode));
+                    SpeakingConsole.WriteLine(curChoice.ToString(playerUser.GameMode));
                 }
                 //Read the user input
-                strInput = Console.ReadLine();
+                strInput = SpeakingConsole.ReadLine();
                 //Exit if user wants to
                 if (strInput.Simplify() == EXIT_FLAG.Simplify())
                 {
@@ -71,7 +72,7 @@ namespace RockPaperScissorsLizardSpock
                 //If the user entered an invalid choice, tell them so.
                 if (playerUser.Choice == Choice.None)
                 {
-                    Console.WriteLine("\nPlease enter a valid choice");
+                    SpeakingConsole.WriteLine("\nPlease enter a valid choice");
                     continue;
                 }
                 //Play click sound
@@ -111,14 +112,14 @@ namespace RockPaperScissorsLizardSpock
         private static void DisplayWinner(Winner winner)
         {
             //Display the winner, then reset for a new game
-            Console.WriteLine("\n" + winner.GetDescription() + "\n");
+            SpeakingConsole.WriteLine("\n" + winner.GetDescription() + "\n");
         }
 
         private static void DisplayStats()
         {
             //Display the stats using an overridden ToString() method
-            Console.WriteLine("\nUser Stats: \n" + playerUser.ToString() + "\n");
-            Console.WriteLine("Computer Stats: \n" + playerComputer.ToString() + "\n");
+            SpeakingConsole.WriteLine("\nUser Stats: \n" + playerUser.ToString() + "\n");
+            SpeakingConsole.WriteLine("Computer Stats: \n" + playerComputer.ToString() + "\n");
         }
 
         private static Choice ConvertIntegerToChoice(int intChoice)

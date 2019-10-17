@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RockPaperScissorsLizardSpock
+namespace RockPaperScissorsLizardSpockSpeaking
 {
     public class Player
     {
@@ -125,10 +125,10 @@ namespace RockPaperScissorsLizardSpock
         public override string ToString()
         {
             //Return a string representation of the player object
-            return "Win count: " + WinCount + "\n" +
-                "Draw count: " + DrawCount + "\n" +
-                "Loss count: " + LossCount + "\n" +
-                "Current Choice: " + choice.ToString(gameMode) + "\n" +
+            return "Win count: " + WinCount + ",,\n" +
+                "Draw count: " + DrawCount + ",,\n" +
+                "Loss count: " + LossCount + ",,\n" +
+                "Current Choice: " + choice.ToString(gameMode) + ",,\n" +
                 "Rounds Played: " + roundsPlayed;
         }
     }

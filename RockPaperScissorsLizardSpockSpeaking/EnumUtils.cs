@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RockPaperScissorsLizardSpock
+namespace RockPaperScissorsLizardSpockSpeaking
 {
     //A class that has various methods for dealing with enums generally and our specific enums.
     public static class EnumUtils
