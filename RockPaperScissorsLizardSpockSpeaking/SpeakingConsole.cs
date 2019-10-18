@@ -16,25 +16,16 @@ namespace RockPaperScissorsLizardSpockSpeaking
 	{
 		private const string MP3_LINK_START_MARKER = "<param name='flashvars' value='file=";
 		private const string MP3_LINK_END_MARKER = "'>";
-		private static string MP3_PATH = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "/temp.mp3";
 
-		private static bool blnMediaEnded = false;
-		class TextToSpeechPostModel
-		{
-			[JsonProperty("language")]
-			public string Language { get; set; }
-			[JsonProperty("voice")]
-			public string Voice { get; set; }
-			[JsonProperty("speed")]
-			public int Speed { get; set; }
-			[JsonProperty("input_text")]
-			public string InputText { get; set; }
-			[JsonProperty("action")]
-			public string Action { get; set; } = "process_text";
-		}
+		private static string MP3_PATH_DIRECTORY = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Temporary sounds";
+		private static string MP3_PATH_FILE = "\\temp{0}.mp3";
+		private static string MP3_PATH = MP3_PATH_DIRECTORY + MP3_PATH_FILE;
+		//private static bool blnMediaEnded = true;
+		private static int intFileNumber = 0;
 
 		public static bool EnableSpeaking { get; set; } = true;
-		public static Language ChosenLanguage { get; set; } = Language.British_English;
+
+		public static Language ChosenLanguage { get; set; } = Language.US_English;
 		public static Voice ChosenVoice { get; set; } = Voice.Alice;
 		public static Speed ChosenSpeed { get; set; } = Speed.Medium;
 
@@ -73,53 +64,61 @@ namespace RockPaperScissorsLizardSpockSpeaking
 			Fast,
 			VeryFast
 		}
-		private static RestClient client = new RestClient() { ReadWriteTimeout = 60000, Timeout = 60000 };
+		private static RestClient client = new RestClient() { ReadWriteTimeout = 600000, Timeout = 600000 };
 		private static WMPLib.WindowsMediaPlayer wplayer = new WMPLib.WindowsMediaPlayer();
+		private static WMPLib.IWMPPlaylist playlist;
 
 		static SpeakingConsole()
 		{
+			playlist = wplayer.playlistCollection.newPlaylist("Console");
+			wplayer.currentPlaylist = playlist;
 			client.UseNewtonsoftJsonDeserializer();
 			wplayer.PlayStateChange += new WMPLib._WMPOCXEvents_PlayStateChangeEventHandler(player_PlayStateChange);
+			Directory.CreateDirectory(MP3_PATH_DIRECTORY);
 		}
 
 		public static void Speak(string s)
 		{
-			RestRequest request = new RestRequest("http://www.fromtexttospeech.com/");
-			//request.AddParameter(new JsonParameter("", new TextToSpeechPostModel() { InputText = s, Language = ChosenLanguage.GetDescription(), Voice = ChosenVoice.GetDescription(), Speed = (int)ChosenSpeed }) { Type = ParameterType.GetOrPost });
-			request.AddParameter("language", ChosenLanguage.GetDescription(), ParameterType.GetOrPost);
-			request.AddParameter("voice", ChosenVoice.GetDescription(), ParameterType.GetOrPost);
-			request.AddParameter("speed", ((int)ChosenSpeed).ToString(), ParameterType.GetOrPost);
-			request.AddParameter("input_text", s, ParameterType.GetOrPost);
-			request.AddParameter("action", "process_text", ParameterType.GetOrPost);
-			IRestResponse response = client.Post(request);
-			int intLinkStart = response.Content.IndexOf(MP3_LINK_START_MARKER) + MP3_LINK_START_MARKER.Length;
-			string strTempContent = response.Content.Substring(intLinkStart);
-			string strLink = strTempContent.Substring(0, strTempContent.IndexOf(MP3_LINK_END_MARKER));
-			request = new RestRequest("http://www.fromtexttospeech.com" + strLink);
-			byte[] bytes = client.DownloadData(request);
-			bool blnFileInUse = false;
-			do
+			try
 			{
-				try
+				RestRequest request = new RestRequest("http://www.fromtexttospeech.com/");
+				request.AddParameter("language", ChosenLanguage.GetDescription(), ParameterType.GetOrPost);
+				request.AddParameter("voice", ChosenVoice.GetDescription(), ParameterType.GetOrPost);
+				request.AddParameter("speed", ((int)ChosenSpeed).ToString(), ParameterType.GetOrPost);
+				request.AddParameter("input_text", s, ParameterType.GetOrPost);
+				request.AddParameter("action", "process_text", ParameterType.GetOrPost);
+				IRestResponse response = client.Post(request);
+				int intLinkStart = response.Content.IndexOf(MP3_LINK_START_MARKER) + MP3_LINK_START_MARKER.Length;
+				string strTempContent = response.Content.Substring(intLinkStart);
+				string strLink = strTempContent.Substring(0, strTempContent.IndexOf(MP3_LINK_END_MARKER));
+				request = new RestRequest("http://www.fromtexttospeech.com" + strLink);
+				byte[] bytes = client.DownloadData(request);
+				using (Stream stream = new FileStream(String.Format(MP3_PATH, intFileNumber), FileMode.Create))
 				{
-					using (Stream stream = new FileStream(MP3_PATH, FileMode.Create))
+					stream.Write(bytes, 0, bytes.Length);
+					//while (!blnMediaEnded)
+					//{
+					//	Thread.Sleep(100);
+					//}
+					//blnMediaEnded = false;
+					Console.WriteLine(playlist.count + s);
+					lock (wplayer)
 					{
-						stream.Write(bytes, 0, bytes.Length);
-						wplayer.URL = MP3_PATH;
-						wplayer.controls.play();
-						while (!blnMediaEnded)
-						{
-							Thread.Sleep(100);
-						}
-						blnMediaEnded = false;
+						playlist.appendItem(wplayer.newMedia(String.Format(MP3_PATH, intFileNumber)));
+						intFileNumber++;
+						if(playlist.count == 1)
+							wplayer.controls.play();
 					}
 				}
-				catch
-				{
-					blnFileInUse = true;
-					Thread.Sleep(100);
-				}
-			} while (blnFileInUse);
+			}
+			catch (StackOverflowException e)
+			{
+				throw e;
+			}
+			catch
+			{
+				Speak(s);
+			}
 		}
 
 		private static void player_PlayStateChange(int newState)
@@ -128,7 +127,13 @@ namespace RockPaperScissorsLizardSpockSpeaking
 			switch (newState)
 			{
 				case 8:    // MediaEnded
-					blnMediaEnded = true;
+						   //blnMediaEnded = true;
+					lock (wplayer)
+					{
+						wplayer.controls.next();
+						//playlist.removeItem(wplayer.currentMedia);
+						//wplayer.controls.play();
+					}
 					break;
 			}
 		}
