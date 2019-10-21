@@ -30,8 +30,6 @@ namespace RockPaperScissorsLizardSpockSpeaking
 		public static Speed ChosenSpeed { get; set; } = Speed.Medium;
 
 		private static List<string> sources = new List<string>();
-		private static List<string> sourcesPlayed = new List<string>();
-		private static List<int> states = new List<int>();
 
 		public enum Language
 		{
@@ -96,14 +94,14 @@ namespace RockPaperScissorsLizardSpockSpeaking
 				string strLink = strTempContent.Substring(0, strTempContent.IndexOf(MP3_LINK_END_MARKER));
 				request = new RestRequest("http://www.fromtexttospeech.com" + strLink);
 				byte[] bytes = client.DownloadData(request);
-				using (Stream stream = new FileStream(String.Format(MP3_PATH, intFileNumber), FileMode.Create))
+				using (Stream stream = new FileStream(string.Format(MP3_PATH, intFileNumber), FileMode.Create))
 				{
 					stream.Write(bytes, 0, bytes.Length);
 
 				}
 				lock (sources)
 				{
-					sources.Add(String.Format(MP3_PATH, intFileNumber));
+					sources.Add(string.Format(MP3_PATH, intFileNumber));
 					//if (sources.Count == 1)
 					//{
 					//	wplayer.URL = sources[0];
@@ -129,7 +127,6 @@ namespace RockPaperScissorsLizardSpockSpeaking
 
 		private static void player_PlayStateChange(int newState)
 		{
-			states.Add(newState);
 			// Test the current state of the player and display a message for each state.
 			switch (newState)
 			{
@@ -147,7 +144,6 @@ namespace RockPaperScissorsLizardSpockSpeaking
 							lock (wplayer)
 							{
 								wplayer.URL = source;
-								sourcesPlayed.Add(source);
 								wplayer.controls.play();
 							}
 						});
