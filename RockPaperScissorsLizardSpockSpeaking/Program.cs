@@ -148,6 +148,7 @@ namespace RockPaperScissorsLizardSpockSpeaking
             }
             //Play closing sound
             System.Media.SystemSounds.Hand.Play();
+            SpeakingConsole.Cleanup();
         }
 
         private static void ResetChoices()
